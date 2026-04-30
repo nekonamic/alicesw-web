@@ -1,13 +1,9 @@
 <script lang="ts">
-	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
+  import "./layout.css";
+  import favicon from "$lib/assets/favicon.svg";
 
-	import { App } from 'konsta/svelte';
-
-	let { children } = $props();
+  let { children } = $props();
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
-<App theme="ios">
 {@render children()}
-</App>

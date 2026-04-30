@@ -1,2 +1,2 @@
-@import 'tailwindcss';
-@import 'konsta/svelte/theme.css';
+@import "tailwindcss";
+@plugin "daisyui";
