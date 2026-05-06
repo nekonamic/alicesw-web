@@ -1,25 +1,65 @@
-<script>
-  import "./layout.css";
-  import Logo from "$lib/components/Logo.svelte";
+<script lang="ts">
+    import "./layout.css";
+    import Logo from "$lib/components/Logo.svelte";
+    import { goto } from "$app/navigation";
 
-  const options = [
-    { value: "content", label: "内容" },
-    { value: "title", label: "书名" },
-    { value: "author", label: "作者" },
-  ];
+    type SearchTarget = "content" | "title" | "author";
 
-  let selected = $state("content");
+    const options: { value: SearchTarget; label: string }[] = [
+        { value: "content", label: "内容" },
+        { value: "title", label: "书名" },
+        { value: "author", label: "作者" },
+    ];
+
+    let selected = $state<SearchTarget>("content");
+    let keyword = $state("");
+
+    async function handleSearch() {
+        if (!keyword.trim()) {
+            return;
+        }
+
+        const params = new URLSearchParams({
+            kw: keyword,
+            page: "1",
+        });
+
+        switch (selected) {
+            case "content":
+                await goto(`/content?${params.toString()}`);
+                break;
+            case "title":
+                await goto(`/title?${params.toString()}`);
+                break;
+            case "author":
+                await goto(`/author?${params.toString()}`);
+                break;
+        }
+    }
 </script>
 
 <div class="flex items-center justify-center flex-col">
-  <Logo />
-  <div class="join">
-    <input class="input join-item rounded-l-lg w-100" placeholder="Search" />
-    <select class="select join-item w-20" bind:value={selected}>
-      {#each options as option}
-        <option value={option.value}>{option.label}</option>
-      {/each}
-    </select>
-    <button class="btn join-item rounded-r-lg">Search</button>
-  </div>
+    <Logo />
+
+    <form
+        class="join"
+        onsubmit={(e) => {
+            e.preventDefault();
+            handleSearch();
+        }}
+    >
+        <input
+            class="input join-item rounded-l-lg w-100"
+            placeholder="请输入..."
+            bind:value={keyword}
+        />
+
+        <select class="select join-item w-20" bind:value={selected}>
+            {#each options as option}
+                <option value={option.value}>{option.label}</option>
+            {/each}
+        </select>
+
+        <button type="submit" class="btn join-item rounded-r-lg"> 搜索 </button>
+    </form>
 </div>

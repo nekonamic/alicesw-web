@@ -1,8 +1,140 @@
 #![deny(clippy::all)]
 
 use napi_derive::napi;
+use once_cell::sync::Lazy;
 use std::path::Path;
-use tantivy::{Index, TantivyDocument, collector::TopDocs, directory::MmapDirectory, query::QueryParser, schema::{Value, INDEXED, IndexRecordOption, STORED, STRING, Schema, TextFieldIndexing, TextOptions}, tokenizer::{LowerCaser, RemoveLongFilter, Stemmer, TextAnalyzer}};
+use tantivy::{
+  collector::TopDocs,
+  directory::MmapDirectory,
+  query::QueryParser,
+  schema::{
+    Field, IndexRecordOption, Schema, TextFieldIndexing, TextOptions, Value, INDEXED, STORED,
+    STRING,
+  },
+  tokenizer::{LowerCaser, RemoveLongFilter, Stemmer, TextAnalyzer},
+  Index, IndexReader, TantivyDocument,
+};
+
+//
+// ========================
+// Schema & Fields
+// ========================
+//
+
+struct ContentFields {
+  _id: Field,
+  author: Field,
+  novel_id: Field,
+  novel_title: Field,
+  chapter_id: Field,
+  chapter_title: Field,
+  chapter_index: Field,
+  content: Field,
+}
+
+struct NovelFields {
+  author: Field,
+  id: Field,
+  title: Field,
+}
+
+fn build_text_options() -> TextOptions {
+  TextOptions::default()
+    .set_indexing_options(
+      TextFieldIndexing::default()
+        .set_tokenizer("jieba")
+        .set_index_option(IndexRecordOption::WithFreqsAndPositions),
+    )
+    .set_stored()
+}
+
+fn build_content_schema() -> (Schema, ContentFields) {
+  let mut builder = Schema::builder();
+
+  let fields = ContentFields {
+    _id: builder.add_text_field("id", STRING | STORED),
+    author: builder.add_text_field("author", build_text_options()),
+    novel_id: builder.add_u64_field("novel_id", INDEXED | STORED),
+    novel_title: builder.add_text_field("novel_title", build_text_options()),
+    chapter_id: builder.add_text_field("chapter_id", STRING | STORED),
+    chapter_title: builder.add_text_field("chapter_title", build_text_options()),
+    chapter_index: builder.add_u64_field("chapter_index", INDEXED | STORED),
+    content: builder.add_text_field("content", build_text_options()),
+  };
+
+  (builder.build(), fields)
+}
+
+fn build_novel_schema() -> (Schema, NovelFields) {
+  let mut builder = Schema::builder();
+
+  let fields = NovelFields {
+    author: builder.add_text_field("author", build_text_options()),
+    id: builder.add_u64_field("id", INDEXED | STORED),
+    title: builder.add_text_field("title", build_text_options()),
+  };
+
+  (builder.build(), fields)
+}
+
+//
+// ========================
+// Global Index (Content)
+// ========================
+//
+
+static CONTENT: Lazy<(Index, ContentFields)> = Lazy::new(|| {
+  let (schema, fields) = build_content_schema();
+  let dir = MmapDirectory::open(Path::new("./content_index")).unwrap();
+  let index = Index::open_or_create(dir, schema).unwrap();
+
+  let tokenizer = tantivy_jieba::JiebaTokenizer::new();
+  let analyzer = TextAnalyzer::builder(tokenizer)
+    .filter(RemoveLongFilter::limit(40))
+    .filter(LowerCaser)
+    .filter(Stemmer::default())
+    .build();
+
+  index.tokenizers().register("jieba", analyzer);
+
+  (index, fields)
+});
+
+static CONTENT_READER: Lazy<IndexReader> = Lazy::new(|| CONTENT.0.reader().unwrap());
+
+static CONTENT_QUERY: Lazy<QueryParser> =
+  Lazy::new(|| QueryParser::for_index(&CONTENT.0, vec![CONTENT.1.content]));
+
+//
+// ========================
+// Global Index (Novel)
+// ========================
+//
+
+static NOVEL: Lazy<(Index, NovelFields)> = Lazy::new(|| {
+  let (schema, fields) = build_novel_schema();
+  let dir = MmapDirectory::open(Path::new("./novel_index")).unwrap();
+  let index = Index::open_or_create(dir, schema).unwrap();
+
+  let tokenizer = tantivy_jieba::JiebaTokenizer::new();
+  let analyzer = TextAnalyzer::builder(tokenizer)
+    .filter(RemoveLongFilter::limit(40))
+    .filter(LowerCaser)
+    .filter(Stemmer::default())
+    .build();
+
+  index.tokenizers().register("jieba", analyzer);
+
+  (index, fields)
+});
+
+static NOVEL_READER: Lazy<IndexReader> = Lazy::new(|| NOVEL.0.reader().unwrap());
+
+//
+// ========================
+// Result Structs
+// ========================
+//
 
 #[napi(object)]
 pub struct ContentSearchResult {
@@ -14,148 +146,119 @@ pub struct ContentSearchResult {
   pub chapter_index: u32,
 }
 
-#[napi]
-pub fn search_content(keyword: String, page: u32) -> Vec<ContentSearchResult> {
-  let mut schema_builder = Schema::builder();
-  let author = schema_builder.add_text_field(
-    "author",
-    TextOptions::default()
-      .set_indexing_options(
-        TextFieldIndexing::default()
-          .set_tokenizer("jieba")
-          .set_index_option(IndexRecordOption::WithFreqsAndPositions),
-      )
-      .set_stored(),
-  );
-  let novel_id = schema_builder.add_u64_field("novel_id", INDEXED | STORED);
-  let novel_title = schema_builder.add_text_field(
-    "novel_title",
-    TextOptions::default()
-      .set_indexing_options(
-        TextFieldIndexing::default()
-          .set_tokenizer("jieba")
-          .set_index_option(IndexRecordOption::WithFreqsAndPositions),
-      )
-      .set_stored(),
-  );
-  let chapter_id = schema_builder.add_text_field("chapter_id", STRING | STORED);
-  let chapter_title = schema_builder.add_text_field(
-    "chapter_title",
-    TextOptions::default()
-      .set_indexing_options(
-        TextFieldIndexing::default()
-          .set_tokenizer("jieba")
-          .set_index_option(IndexRecordOption::WithFreqsAndPositions),
-      )
-      .set_stored(),
-  );
-  let chapter_index = schema_builder.add_u64_field("chapter_index", INDEXED | STORED);
-  let content = schema_builder.add_text_field(
-    "content",
-    TextOptions::default()
-      .set_indexing_options(
-        TextFieldIndexing::default()
-          .set_tokenizer("jieba")
-          .set_index_option(IndexRecordOption::WithFreqsAndPositions),
-      )
-      .set_stored(),
-  );
-  let schema = schema_builder.build();
-
-  let tokenizer = tantivy_jieba::JiebaTokenizer::new();
-  let index_path = Path::new("./content_index");
-  let dir = MmapDirectory::open(index_path).unwrap();
-  let index = Index::open_or_create(dir, schema).unwrap();
-  let analyzer = TextAnalyzer::builder(tokenizer)
-    .filter(RemoveLongFilter::limit(40))
-    .filter(LowerCaser)
-    .filter(Stemmer::default())
-    .build();
-  index.tokenizers().register("jieba", analyzer);
-
-  let reader = index.reader().unwrap();
-  let searcher = reader.searcher();
-  let query_parser = QueryParser::for_index(&index, vec![content]);
-  let query = query_parser.parse_query(&keyword).unwrap();
-
-  let top_docs = searcher
-    .search(&query, &TopDocs::with_limit(20).and_offset((page * 20).try_into().unwrap()).order_by_score())
-    .unwrap();
-  let mut results: Vec<ContentSearchResult> = Vec::new();
-  for (_, doc_address) in top_docs {
-    let retrieved_doc: TantivyDocument = searcher.doc(doc_address).unwrap();
-    results.push(ContentSearchResult {
-        author: retrieved_doc.get_first(author).unwrap().as_str().unwrap_or_default().to_string(),
-        novel_id: retrieved_doc.get_first(novel_id).unwrap().as_u64().unwrap_or_default() as u32,
-        novel_title: retrieved_doc.get_first(novel_title).unwrap().as_str().unwrap_or_default().to_string(),
-        chapter_id: retrieved_doc.get_first(chapter_id).unwrap().as_str().unwrap_or_default().to_string(),
-        chapter_title: retrieved_doc.get_first(chapter_title).unwrap().as_str().unwrap_or_default().to_string(),
-        chapter_index: retrieved_doc.get_first(chapter_index).unwrap().as_u64().unwrap_or_default() as u32,
-    });
-  }
-  results
-}
-
 #[napi(object)]
-pub struct TitleSearchResult {
+pub struct NovelSearchResult {
   pub author: String,
   pub novel_id: u32,
   pub novel_title: String,
 }
 
+//
+// ========================
+// Helpers
+// ========================
+//
+
+fn get_str(doc: &TantivyDocument, field: Field) -> String {
+  doc
+    .get_first(field)
+    .and_then(|v| v.as_str())
+    .unwrap_or("")
+    .to_string()
+}
+
+fn get_u32(doc: &TantivyDocument, field: Field) -> u32 {
+  doc.get_first(field).and_then(|v| v.as_u64()).unwrap_or(0) as u32
+}
+
+fn calc_offset(page: u32) -> usize {
+  (page as usize).saturating_mul(20)
+}
+
+//
+// ========================
+// Search APIs
+// ========================
+//
+
 #[napi]
-pub fn search_title(keyword: String, page: u32) -> Vec<TitleSearchResult> {
-  let mut schema_builder = Schema::builder();
-  let author = schema_builder.add_text_field(
-    "author",
-    TextOptions::default()
-      .set_indexing_options(
-        TextFieldIndexing::default()
-          .set_tokenizer("jieba")
-          .set_index_option(IndexRecordOption::WithFreqsAndPositions),
-      )
-      .set_stored(),
-  );
-  let novel_id = schema_builder.add_u64_field("novel_id", INDEXED | STORED);
-  let novel_title = schema_builder.add_text_field(
-    "novel_title",
-    TextOptions::default()
-      .set_indexing_options(
-        TextFieldIndexing::default()
-          .set_tokenizer("jieba")
-          .set_index_option(IndexRecordOption::WithFreqsAndPositions),
-      )
-      .set_stored(),
-  );
-  let schema = schema_builder.build();
+pub fn search_content(keyword: String, page: u32) -> Vec<ContentSearchResult> {
+  let searcher = CONTENT_READER.searcher();
 
-  let tokenizer = tantivy_jieba::JiebaTokenizer::new();
-  let index_path = Path::new("./title_index");
-  let dir = MmapDirectory::open(index_path).unwrap();
-  let index = Index::open_or_create(dir, schema).unwrap();
-  let analyzer = TextAnalyzer::builder(tokenizer)
-    .filter(RemoveLongFilter::limit(40))
-    .filter(LowerCaser)
-    .filter(Stemmer::default())
-    .build();
-  index.tokenizers().register("jieba", analyzer);
+  let query = match CONTENT_QUERY.parse_query(&keyword) {
+    Ok(q) => q,
+    Err(_) => return vec![],
+  };
 
-  let reader = index.reader().unwrap();
-  let searcher = reader.searcher();
-  let query_parser = QueryParser::for_index(&index, vec![novel_title]);
-  let query = query_parser.parse_query(&keyword).unwrap();
+  let top_docs = match searcher.search(
+    &query,
+    &TopDocs::with_limit(20)
+      .and_offset(calc_offset(page))
+      .order_by_score(),
+  ) {
+    Ok(docs) => docs,
+    Err(_) => return vec![],
+  };
 
-  let top_docs = searcher
-    .search(&query, &TopDocs::with_limit(20).and_offset((page * 20).try_into().unwrap()).order_by_score())
-    .unwrap();
-  let mut results: Vec<TitleSearchResult> = Vec::new();
-  for (_, doc_address) in top_docs {
-    let retrieved_doc: TantivyDocument = searcher.doc(doc_address).unwrap();
-    results.push(TitleSearchResult {
-        author: retrieved_doc.get_first(author).unwrap().as_str().unwrap_or_default().to_string(),
-        novel_id: retrieved_doc.get_first(novel_id).unwrap().as_u64().unwrap_or_default() as u32,
-        novel_title: retrieved_doc.get_first(novel_title).unwrap().as_str().unwrap_or_default().to_string(),
-    });
+  let mut results = Vec::with_capacity(top_docs.len());
+
+  for (_, addr) in top_docs {
+    if let Ok(doc) = searcher.doc(addr) {
+      results.push(ContentSearchResult {
+        author: get_str(&doc, CONTENT.1.author),
+        novel_id: get_u32(&doc, CONTENT.1.novel_id),
+        novel_title: get_str(&doc, CONTENT.1.novel_title),
+        chapter_id: get_str(&doc, CONTENT.1.chapter_id),
+        chapter_title: get_str(&doc, CONTENT.1.chapter_title),
+        chapter_index: get_u32(&doc, CONTENT.1.chapter_index),
+      });
+    }
   }
+
   results
+}
+
+fn search_novel(field: Field, keyword: String, page: u32) -> Vec<NovelSearchResult> {
+  let searcher = NOVEL_READER.searcher();
+
+  let parser = QueryParser::for_index(&NOVEL.0, vec![field]);
+
+  let query = match parser.parse_query(&keyword) {
+    Ok(q) => q,
+    Err(_) => return vec![],
+  };
+
+  let top_docs = match searcher.search(
+    &query,
+    &TopDocs::with_limit(20)
+      .and_offset(calc_offset(page))
+      .order_by_score(),
+  ) {
+    Ok(docs) => docs,
+    Err(_) => return vec![],
+  };
+
+  let mut results = Vec::with_capacity(top_docs.len());
+
+  for (_, addr) in top_docs {
+    if let Ok(doc) = searcher.doc(addr) {
+      results.push(NovelSearchResult {
+        author: get_str(&doc, NOVEL.1.author),
+        novel_id: get_u32(&doc, NOVEL.1.id),
+        novel_title: get_str(&doc, NOVEL.1.title),
+      });
+    }
+  }
+
+  results
+}
+
+#[napi]
+pub fn search_title(keyword: String, page: u32) -> Vec<NovelSearchResult> {
+  search_novel(NOVEL.1.title, keyword, page)
+}
+
+#[napi]
+pub fn search_author(keyword: String, page: u32) -> Vec<NovelSearchResult> {
+  search_novel(NOVEL.1.author, keyword, page)
 }

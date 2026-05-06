@@ -579,5 +579,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { searchContent } = nativeBinding
+const { searchAuthor, searchContent, searchTitle } = nativeBinding
+export { searchAuthor }
 export { searchContent }
+export { searchTitle }

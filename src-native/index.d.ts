@@ -9,4 +9,14 @@ export interface ContentSearchResult {
   chapterIndex: number
 }
 
+export interface NovelSearchResult {
+  author: string
+  novelId: number
+  novelTitle: string
+}
+
+export declare function searchAuthor(keyword: string, page: number): Array<NovelSearchResult>
+
 export declare function searchContent(keyword: string, page: number): Array<ContentSearchResult>
+
+export declare function searchTitle(keyword: string, page: number): Array<NovelSearchResult>

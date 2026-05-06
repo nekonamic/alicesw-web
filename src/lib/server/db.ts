@@ -1,6 +1,6 @@
-import Database from 'better-sqlite3';
+import Database from "better-sqlite3";
 
-const db = new Database('./alicesw.db');
+const db = new Database("./alicesw.db");
 
 export interface SearchResult {
   author: string;
@@ -24,71 +24,48 @@ export interface NovelResult extends SearchResult {
 export interface ChapterResult {
   title: string;
   content: string;
+  chapter_index: number;
+  total_chapters: number;
+  prev_id: number;
+  next_id: number;
 }
 
-const searchAuthorStmt = db.prepare<[string, number, number]>(`
-  SELECT 
-    n.author,
-    n.id AS novel_id, 
-    n.title AS novel_title, 
-    (MAX(c.chapter_index) + 1) AS chapter_count,
-    SUM(LENGTH(c.content)) AS word_count
-  FROM novels n
-  LEFT JOIN chapters c ON n.id = c.novel_id
-  WHERE n.author LIKE ?
-  GROUP BY n.id, n.title
-  ORDER BY n.id ASC
-  LIMIT ? OFFSET ?
-`);
-
-const searchTitleStmt = db.prepare<[string, number, number]>(`
-  SELECT 
-    n.author,
-    n.id AS novel_id, 
-    n.title AS novel_title, 
-    (MAX(c.chapter_index) + 1) AS chapter_count,
-    SUM(LENGTH(c.content)) AS word_count
-  FROM novels n
-  LEFT JOIN chapters c ON n.id = c.novel_id
-  WHERE n.title LIKE ?
-  GROUP BY n.id, n.title
-  ORDER BY n.id ASC
-  LIMIT ? OFFSET ?
-`);
-
 const getNovelStmt = db.prepare<[number]>(`
-  SELECT 
-    n.author, 
-    n.id AS novel_id, 
+  SELECT
+    n.author,
+    n.id AS novel_id,
     n.title AS novel_title,
     COUNT(c.id) AS chapter_count,
     COALESCE(SUM(LENGTH(c.content)), 0) AS word_count
   FROM novels n
   LEFT JOIN chapters c ON n.id = c.novel_id
-  WHERE n.id = ?
+  WHERE n.id = :id
   GROUP BY n.id
 `);
 
 const getChapterListStmt = db.prepare<[number]>(`
   SELECT id, chapter_index, title, LENGTH(content) AS word_count
-  FROM chapters 
-  WHERE novel_id = ?
+  FROM chapters
+  WHERE novel_id = :id
   ORDER BY chapter_index ASC
 `);
 
-const getChapterStmt = db.prepare<[string, number]>(`
-  SELECT title, content
-  FROM chapters
-  WHERE id = ? AND novel_id = ?
+const getChapterStmt = db.prepare(`
+  SELECT *
+  FROM (
+    SELECT
+      id,
+      title,
+      content,
+      chapter_index,
+      LAG(id) OVER (PARTITION BY novel_id ORDER BY chapter_index) AS prev_id,
+      LEAD(id) OVER (PARTITION BY novel_id ORDER BY chapter_index) AS next_id,
+      COUNT(*) OVER (PARTITION BY novel_id) AS total_chapters
+    FROM chapters
+    WHERE novel_id = :novelId
+  ) t
+  WHERE id = :id;
 `);
-
-export function searchAuthor(keyword: string, page: number): SearchResult[] {
-  return searchAuthorStmt.all(`%${keyword}%`, 20, page * 20) as SearchResult[];
-}
-
-export function searchTitle(keyword: string, page: number): SearchResult[] {
-  return searchTitleStmt.all(`%${keyword}%`, 20, page * 20) as SearchResult[];
-}
 
 export function getNovel(id: number): NovelResult | null {
   const novel = getNovelStmt.get(id) as SearchResult | undefined;
@@ -100,5 +77,7 @@ export function getNovel(id: number): NovelResult | null {
 }
 
 export function getChapter(id: string, novelId: number): ChapterResult | null {
-  return (getChapterStmt.get(id, novelId) as ChapterResult | undefined) ?? null;
+  return (
+    (getChapterStmt.get({ id, novelId }) as ChapterResult | undefined) ?? null
+  );
 }
