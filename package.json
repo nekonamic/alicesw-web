@@ -16,6 +16,7 @@
 		"@sveltejs/kit": "^2.57.0",
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
 		"@tailwindcss/vite": "0.0.0-insiders.f3fdda2",
+		"@types/better-sqlite3": "^7.6.13",
 		"daisyui": "^5.5.19",
 		"svelte": "^5.55.2",
 		"svelte-check": "^4.4.6",
@@ -24,6 +25,7 @@
 		"vite": "^8.0.7"
 	},
 	"dependencies": {
+		"better-sqlite3": "^12.9.0",
 		"fts-native": "link:src-native"
 	}
 }
