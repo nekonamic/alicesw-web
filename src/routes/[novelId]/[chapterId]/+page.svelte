@@ -1,6 +1,6 @@
 <script lang="ts">
-import { page } from "$app/state";
-let { data } = $props();
+    import { page } from "$app/state";
+    let { data } = $props();
 </script>
 
 <div class="min-h-screen py-6 px-2 sm:py-12">
@@ -43,7 +43,7 @@ let { data } = $props();
 
             <a
                 href="/{page.params.novelId}"
-                class="btn btn-ghost btn-sm text-base-content/60 hidden sm:inline-flex"
+                class="btn btn-ghost btn-sm text-base-content/60 inline-flex"
             >
                 返回目录
             </a>
