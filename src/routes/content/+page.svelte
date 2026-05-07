@@ -1,37 +1,38 @@
 <script lang="ts">
-import { page } from "$app/state";
-import { goto } from "$app/navigation";
-import { PUBLIC_PAGE_SIZE } from "$env/static/public";
+    import { page } from "$app/state";
+    import { goto } from "$app/navigation";
+    import { PUBLIC_PAGE_SIZE } from "$env/static/public";
+    const pageSize = Number(PUBLIC_PAGE_SIZE);
 
-let { data } = $props();
-const kw = $derived(page.url.searchParams.get("kw"));
-const currentPage = $derived(page.url.searchParams.get("page"));
+    let { data } = $props();
+    const kw = $derived(page.url.searchParams.get("kw"));
+    const currentPage = $derived(page.url.searchParams.get("page"));
 
-async function handleRead(novel_id: number, chapter_id: string) {
-	await goto(`/${novel_id}/${chapter_id}`);
-}
+    async function handleRead(novel_id: number, chapter_id: string) {
+        await goto(`/${novel_id}/${chapter_id}`);
+    }
 
-async function handleNovel(novel_id: number) {
-	await goto(`/${novel_id}`);
-}
+    async function handleNovel(novel_id: number) {
+        await goto(`/${novel_id}`);
+    }
 
-async function handleAuthor(author: string) {
-	await goto(`/author?kw=${author}&page=1`);
-}
+    async function handleAuthor(author: string) {
+        await goto(`/author?kw=${author}&page=1`);
+    }
 
-let jumpPage = $state<number>(1);
+    let jumpPage = $state<number>(1);
 
-$effect(() => {
-	if (currentPage) {
-		jumpPage = Number(currentPage);
-	}
-});
+    $effect(() => {
+        if (currentPage) {
+            jumpPage = Number(currentPage);
+        }
+    });
 
-async function handlePage(newPage: number) {
-	const url = new URL(window.location.href);
-	url.searchParams.set("page", newPage.toString());
-	await goto(url.pathname + url.search);
-}
+    async function handlePage(newPage: number) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("page", newPage.toString());
+        await goto(url.pathname + url.search);
+    }
 </script>
 
 <div class="container mx-auto p-6">
@@ -94,9 +95,7 @@ async function handlePage(newPage: number) {
             {/if}
             <div class="dropdown dropdown-top dropdown-center">
                 <div tabindex="0" role="button" class="join-item btn btn-lg">
-                    {currentPage}/{Math.ceil(
-                        data.result.total / Number(PUBLIC_PAGE_SIZE),
-                    )}
+                    {currentPage}/{Math.ceil(data.result.total / pageSize)}
                 </div>
                 <div
                     class="dropdown-content bg-base-100 rounded-box p-4 shadow-sm"
@@ -126,7 +125,7 @@ async function handlePage(newPage: number) {
                     </form>
                 </div>
             </div>
-            {#if Number(currentPage) * Number(PUBLIC_PAGE_SIZE) > data.result.total || currentPage === "1"}
+            {#if Number(currentPage) * pageSize > data.result.total || data.result.total < pageSize}
                 <button class="join-item btn btn-lg btn-disabled">»</button>
             {:else}
                 <button

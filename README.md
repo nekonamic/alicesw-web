@@ -1,42 +1,37 @@
-# sv
+# 魔理沙书屋 - 爱丽丝书屋数据全文搜索web
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+> 警告：只在linux运行过，其他系统不确定是否能正常运行
 
-## Creating a project
+## 使用教程
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project
-npx sv create my-app
-```
-
-To recreate this project with the same configuration:
+### 克隆代码
 
 ```sh
-# recreate this project
-pnpm dlx sv@0.15.2 create --template minimal --types ts --add tailwindcss="plugins:none" --install pnpm ./
+git clone https://git.inf.li/nekonamic/alicesw-web.git
+cd alicesw-web
 ```
 
-## Developing
+### 将数据库与索引放在目录下
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+数据接口如下
+```
+alicesw-web/
+├─ content_index/
+├─ novel_index/
+├─ data.db
+...
+```
+
+### 构建
+
+> node版本使用24
 
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+npx vite build
 ```
 
-## Building
-
-To create a production version of your app:
+### 运行
 
 ```sh
-npm run build
+node build
 ```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
