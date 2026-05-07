@@ -1,41 +1,41 @@
 <script lang="ts">
-    import "./layout.css";
-    import Logo from "$lib/components/Logo.svelte";
-    import { goto } from "$app/navigation";
+import "./layout.css";
+import Logo from "$lib/components/Logo.svelte";
+import { goto } from "$app/navigation";
 
-    type SearchTarget = "content" | "title" | "author";
+type SearchTarget = "content" | "title" | "author";
 
-    const options: { value: SearchTarget; label: string }[] = [
-        { value: "content", label: "内容" },
-        { value: "title", label: "书名" },
-        { value: "author", label: "作者" },
-    ];
+const options: { value: SearchTarget; label: string }[] = [
+	{ value: "content", label: "内容" },
+	{ value: "title", label: "书名" },
+	{ value: "author", label: "作者" },
+];
 
-    let selected = $state<SearchTarget>("content");
-    let keyword = $state("");
+let selected = $state<SearchTarget>("content");
+let keyword = $state("");
 
-    async function handleSearch() {
-        if (!keyword.trim()) {
-            return;
-        }
+async function handleSearch() {
+	if (!keyword.trim()) {
+		return;
+	}
 
-        const params = new URLSearchParams({
-            kw: keyword,
-            page: "1",
-        });
+	const params = new URLSearchParams({
+		kw: keyword,
+		page: "1",
+	});
 
-        switch (selected) {
-            case "content":
-                await goto(`/content?${params.toString()}`);
-                break;
-            case "title":
-                await goto(`/title?${params.toString()}`);
-                break;
-            case "author":
-                await goto(`/author?${params.toString()}`);
-                break;
-        }
-    }
+	switch (selected) {
+		case "content":
+			await goto(`/content?${params.toString()}`);
+			break;
+		case "title":
+			await goto(`/title?${params.toString()}`);
+			break;
+		case "author":
+			await goto(`/author?${params.toString()}`);
+			break;
+	}
+}
 </script>
 
 <div class="flex items-center justify-center flex-col">

@@ -1,20 +1,20 @@
 <script lang="ts">
-    let { data } = $props();
-    import { goto } from "$app/navigation";
+let { data } = $props();
+import { goto } from "$app/navigation";
 
-    const formatWordCount = (count: number) => {
-        return count > 10000 ? (count / 10000).toFixed(1) + "万" : count;
-    };
+const formatWordCount = (count: number) => {
+	return count > 10000 ? (count / 10000).toFixed(1) + "万" : count;
+};
 
-    async function handleStart() {
-        await goto(
-            `/${data.novel_id}/${data.chapter_info.find((ch) => ch.chapter_index === 0)?.id}`,
-        );
-    }
+async function handleStart() {
+	await goto(
+		`/${data.novel_id}/${data.chapter_info.find((ch) => ch.chapter_index === 0)?.id}`,
+	);
+}
 
-    async function handleChapter(id: number) {
-        await goto(`/${data.novel_id}/${id}`);
-    }
+async function handleChapter(id: number) {
+	await goto(`/${data.novel_id}/${id}`);
+}
 </script>
 
 <div class="max-w-4xl mx-auto p-4 md:p-8 space-y-8">

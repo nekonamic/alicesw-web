@@ -1,8 +1,8 @@
 import Database from "better-sqlite3";
 
 const db = new Database("./data.db", {
-  readonly: true,
-  fileMustExist: true,
+	readonly: true,
+	fileMustExist: true,
 });
 db.pragma("journal_mode = OFF");
 db.pragma("query_only = true");
@@ -10,31 +10,31 @@ db.pragma("cache_size = -1024000");
 db.pragma("temp_store = MEMORY");
 
 export interface SearchResult {
-  author: string;
-  novel_id: number;
-  novel_title: string;
-  chapter_count: number;
-  word_count: number;
+	author: string;
+	novel_id: number;
+	novel_title: string;
+	chapter_count: number;
+	word_count: number;
 }
 
 export interface ChapterInfo {
-  id: string;
-  chapter_index: number;
-  title: string;
-  word_count: number;
+	id: string;
+	chapter_index: number;
+	title: string;
+	word_count: number;
 }
 
 export interface NovelResult extends SearchResult {
-  chapter_info: ChapterInfo[];
+	chapter_info: ChapterInfo[];
 }
 
 export interface ChapterResult {
-  title: string;
-  content: string;
-  chapter_index: number;
-  total_chapters: number;
-  prev_id: number;
-  next_id: number;
+	title: string;
+	content: string;
+	chapter_index: number;
+	total_chapters: number;
+	prev_id: number;
+	next_id: number;
 }
 
 const getNovelStmt = db.prepare(`
@@ -75,16 +75,16 @@ const getChapterStmt = db.prepare(`
 `);
 
 export function getNovel(id: number): NovelResult | null {
-  const novel = getNovelStmt.get({ id }) as SearchResult | undefined;
-  if (!novel) return null;
+	const novel = getNovelStmt.get({ id }) as SearchResult | undefined;
+	if (!novel) return null;
 
-  const chapters = getChapterListStmt.all({ id }) as ChapterInfo[];
+	const chapters = getChapterListStmt.all({ id }) as ChapterInfo[];
 
-  return { ...novel, chapter_info: chapters };
+	return { ...novel, chapter_info: chapters };
 }
 
 export function getChapter(id: string, novelId: number): ChapterResult | null {
-  return (
-    (getChapterStmt.get({ id, novelId }) as ChapterResult | undefined) ?? null
-  );
+	return (
+		(getChapterStmt.get({ id, novelId }) as ChapterResult | undefined) ?? null
+	);
 }

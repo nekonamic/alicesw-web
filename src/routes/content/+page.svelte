@@ -1,37 +1,37 @@
 <script lang="ts">
-    import { page } from "$app/state";
-    import { goto } from "$app/navigation";
-    import { PUBLIC_PAGE_SIZE } from "$env/static/public";
+import { page } from "$app/state";
+import { goto } from "$app/navigation";
+import { PUBLIC_PAGE_SIZE } from "$env/static/public";
 
-    let { data } = $props();
-    const kw = $derived(page.url.searchParams.get("kw"));
-    const currentPage = $derived(page.url.searchParams.get("page"));
+let { data } = $props();
+const kw = $derived(page.url.searchParams.get("kw"));
+const currentPage = $derived(page.url.searchParams.get("page"));
 
-    async function handleRead(novel_id: number, chapter_id: string) {
-        await goto(`/${novel_id}/${chapter_id}`);
-    }
+async function handleRead(novel_id: number, chapter_id: string) {
+	await goto(`/${novel_id}/${chapter_id}`);
+}
 
-    async function handleNovel(novel_id: number) {
-        await goto(`/${novel_id}`);
-    }
+async function handleNovel(novel_id: number) {
+	await goto(`/${novel_id}`);
+}
 
-    async function handleAuthor(author: string) {
-        await goto(`/author?kw=${author}&page=1`);
-    }
+async function handleAuthor(author: string) {
+	await goto(`/author?kw=${author}&page=1`);
+}
 
-    let jumpPage = $state<number>(1);
+let jumpPage = $state<number>(1);
 
-    $effect(() => {
-        if (currentPage) {
-            jumpPage = Number(currentPage);
-        }
-    });
+$effect(() => {
+	if (currentPage) {
+		jumpPage = Number(currentPage);
+	}
+});
 
-    async function handlePage(newPage: number) {
-        const url = new URL(window.location.href);
-        url.searchParams.set("page", newPage.toString());
-        await goto(url.pathname + url.search);
-    }
+async function handlePage(newPage: number) {
+	const url = new URL(window.location.href);
+	url.searchParams.set("page", newPage.toString());
+	await goto(url.pathname + url.search);
+}
 </script>
 
 <div class="container mx-auto p-6">
