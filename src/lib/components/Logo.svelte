@@ -1,6 +1,4 @@
-<div
-  class="relative flex flex-col items-center py-8 px-8"
->
+<div class="relative flex flex-col items-center p-8">
   <div class="flex items-center gap-3 mb-5">
     <div
       class="w-16 h-px bg-gradient-to-r from-transparent via-amber-600 to-transparent"
@@ -11,9 +9,7 @@
     ></div>
   </div>
 
-  <h1
-    class="font-serif text-4xl tracking-[0.2em] leading-none"
-  >
+  <h1 class="font-serif text-4xl tracking-[0.2em] leading-none">
     <span
       class="inline-block hover:-translate-y-1 hover:text-amber-600 transition-all duration-300"
       >魔</span

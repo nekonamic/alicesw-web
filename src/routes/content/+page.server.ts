@@ -1,6 +1,7 @@
 import { redirect } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 import { searchContent } from "fts-native";
+import { PAGE_SIZE } from "$env/static/private";
 
 export const load: PageServerLoad = async ({ url }) => {
   const kw = url.searchParams.get("kw")?.trim();
@@ -16,5 +17,10 @@ export const load: PageServerLoad = async ({ url }) => {
   }
 
   const result = searchContent(kw, page);
+
+  if (page * Number(PAGE_SIZE) - result.total > Number(PAGE_SIZE)) {
+    throw redirect(307, "/");
+  }
+
   return { result };
 };

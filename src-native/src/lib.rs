@@ -4,7 +4,7 @@ use napi_derive::napi;
 use once_cell::sync::Lazy;
 use std::path::Path;
 use tantivy::{
-  collector::TopDocs,
+  collector::{Count, TopDocs},
   directory::MmapDirectory,
   query::QueryParser,
   schema::{
@@ -15,11 +15,7 @@ use tantivy::{
   Index, IndexReader, TantivyDocument,
 };
 
-//
-// ========================
-// Schema & Fields
-// ========================
-//
+const PAGE_SIZE: usize = 24;
 
 struct ContentFields {
   _id: Field,
@@ -77,12 +73,6 @@ fn build_novel_schema() -> (Schema, NovelFields) {
   (builder.build(), fields)
 }
 
-//
-// ========================
-// Global Index (Content)
-// ========================
-//
-
 static CONTENT: Lazy<(Index, ContentFields)> = Lazy::new(|| {
   let (schema, fields) = build_content_schema();
   let dir = MmapDirectory::open(Path::new("./content_index")).unwrap();
@@ -105,12 +95,6 @@ static CONTENT_READER: Lazy<IndexReader> = Lazy::new(|| CONTENT.0.reader().unwra
 static CONTENT_QUERY: Lazy<QueryParser> =
   Lazy::new(|| QueryParser::for_index(&CONTENT.0, vec![CONTENT.1.content]));
 
-//
-// ========================
-// Global Index (Novel)
-// ========================
-//
-
 static NOVEL: Lazy<(Index, NovelFields)> = Lazy::new(|| {
   let (schema, fields) = build_novel_schema();
   let dir = MmapDirectory::open(Path::new("./novel_index")).unwrap();
@@ -130,12 +114,6 @@ static NOVEL: Lazy<(Index, NovelFields)> = Lazy::new(|| {
 
 static NOVEL_READER: Lazy<IndexReader> = Lazy::new(|| NOVEL.0.reader().unwrap());
 
-//
-// ========================
-// Result Structs
-// ========================
-//
-
 #[napi(object)]
 pub struct ContentSearchResult {
   pub author: String,
@@ -147,17 +125,23 @@ pub struct ContentSearchResult {
 }
 
 #[napi(object)]
+pub struct ContentSearchResponse {
+  pub results: Vec<ContentSearchResult>,
+  pub total: u32,
+}
+
+#[napi(object)]
 pub struct NovelSearchResult {
   pub author: String,
   pub novel_id: u32,
   pub novel_title: String,
 }
 
-//
-// ========================
-// Helpers
-// ========================
-//
+#[napi(object)]
+pub struct NovelSearchResponse {
+  pub results: Vec<NovelSearchResult>,
+  pub total: u32,
+}
 
 fn get_str(doc: &TantivyDocument, field: Field) -> String {
   doc
@@ -172,36 +156,43 @@ fn get_u32(doc: &TantivyDocument, field: Field) -> u32 {
 }
 
 fn calc_offset(page: u32) -> usize {
-  (page as usize).saturating_mul(20)
+  (page.saturating_sub(1) as usize).saturating_mul(PAGE_SIZE)
 }
 
-//
-// ========================
-// Search APIs
-// ========================
-//
-
 #[napi]
-pub fn search_content(keyword: String, page: u32) -> Vec<ContentSearchResult> {
+pub fn search_content(keyword: String, page: u32) -> ContentSearchResponse {
   let searcher = CONTENT_READER.searcher();
-
   let query = match CONTENT_QUERY.parse_query(&keyword) {
     Ok(q) => q,
-    Err(_) => return vec![],
+    Err(_) => {
+      return ContentSearchResponse {
+        results: vec![],
+        total: 0,
+      }
+    }
   };
 
   let top_docs = match searcher.search(
     &query,
-    &TopDocs::with_limit(20)
+    &TopDocs::with_limit(PAGE_SIZE)
       .and_offset(calc_offset(page))
       .order_by_score(),
   ) {
     Ok(docs) => docs,
-    Err(_) => return vec![],
+    Err(_) => {
+      return ContentSearchResponse {
+        results: vec![],
+        total: 0,
+      }
+    }
+  };
+
+  let total = match searcher.search(&query, &Count) {
+    Ok(count) => count as u32,
+    Err(_) => 0,
   };
 
   let mut results = Vec::with_capacity(top_docs.len());
-
   for (_, addr) in top_docs {
     if let Ok(doc) = searcher.doc(addr) {
       results.push(ContentSearchResult {
@@ -215,27 +206,42 @@ pub fn search_content(keyword: String, page: u32) -> Vec<ContentSearchResult> {
     }
   }
 
-  results
+  ContentSearchResponse { results, total }
 }
 
-fn search_novel(field: Field, keyword: String, page: u32) -> Vec<NovelSearchResult> {
+fn search_novel(field: Field, keyword: String, page: u32) -> NovelSearchResponse {
   let searcher = NOVEL_READER.searcher();
 
   let parser = QueryParser::for_index(&NOVEL.0, vec![field]);
 
   let query = match parser.parse_query(&keyword) {
     Ok(q) => q,
-    Err(_) => return vec![],
+    Err(_) => {
+      return NovelSearchResponse {
+        results: vec![],
+        total: 0,
+      }
+    }
   };
 
   let top_docs = match searcher.search(
     &query,
-    &TopDocs::with_limit(20)
+    &TopDocs::with_limit(PAGE_SIZE)
       .and_offset(calc_offset(page))
       .order_by_score(),
   ) {
     Ok(docs) => docs,
-    Err(_) => return vec![],
+    Err(_) => {
+      return NovelSearchResponse {
+        results: vec![],
+        total: 0,
+      }
+    }
+  };
+
+  let total = match searcher.search(&query, &Count) {
+    Ok(count) => count as u32,
+    Err(_) => 0,
   };
 
   let mut results = Vec::with_capacity(top_docs.len());
@@ -250,15 +256,15 @@ fn search_novel(field: Field, keyword: String, page: u32) -> Vec<NovelSearchResu
     }
   }
 
-  results
+  NovelSearchResponse { results, total }
 }
 
 #[napi]
-pub fn search_title(keyword: String, page: u32) -> Vec<NovelSearchResult> {
+pub fn search_title(keyword: String, page: u32) -> NovelSearchResponse {
   search_novel(NOVEL.1.title, keyword, page)
 }
 
 #[napi]
-pub fn search_author(keyword: String, page: u32) -> Vec<NovelSearchResult> {
+pub fn search_author(keyword: String, page: u32) -> NovelSearchResponse {
   search_novel(NOVEL.1.author, keyword, page)
 }
