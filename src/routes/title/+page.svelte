@@ -2,14 +2,11 @@
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
     import { PUBLIC_PAGE_SIZE } from "$env/static/public";
+    const pageSize = Number(PUBLIC_PAGE_SIZE);
 
     let { data } = $props();
     const kw = $derived(page.url.searchParams.get("kw"));
     const currentPage = $derived(page.url.searchParams.get("page"));
-
-    async function handleRead(novel_id: number, chapter_id: string) {
-        await goto(`/${novel_id}/${chapter_id}`);
-    }
 
     async function handleNovel(novel_id: number) {
         await goto(`/${novel_id}`);
@@ -35,10 +32,10 @@
 </script>
 
 <div class="container mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-8">内容 {kw}:</h1>
+    <h1 class="text-3xl font-bold mb-8">标题 {kw}:</h1>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {#each data.result.results as item (item.chapterId)}
+        {#each data.result.results as item (item.novelId)}
             <div
                 class="card bg-base-200 shadow-lg hover:shadow-xl transition-shadow duration-300"
             >
@@ -47,12 +44,8 @@
                         {item.novelTitle}
                     </h2>
 
-                    <p class="text-sm text-base-content/90 line-clamp-2">
-                        {item.author}
-                    </p>
-
                     <p class="text-sm text-base-content/70 line-clamp-2">
-                        {item.chapterTitle}
+                        {item.author}
                     </p>
 
                     <div class="card-actions justify-end">
@@ -62,18 +55,10 @@
                             >搜索作者</button
                         >
                         <button
-                            class="btn btn-sm btn-secondary"
+                            class="btn btn-sm btn-primary"
                             onclick={() => handleNovel(item.novelId)}
                             >查看小说</button
                         >
-                        <div class="card-actions justify-end">
-                            <button
-                                class="btn btn-sm btn-primary"
-                                onclick={() =>
-                                    handleRead(item.novelId, item.chapterId)}
-                                >阅读章节</button
-                            >
-                        </div>
                     </div>
                 </div>
             </div>
@@ -94,9 +79,7 @@
             {/if}
             <div class="dropdown dropdown-top dropdown-center">
                 <div tabindex="0" role="button" class="join-item btn btn-lg">
-                    {currentPage}/{Math.ceil(
-                        data.result.total / Number(PUBLIC_PAGE_SIZE),
-                    )}
+                    {currentPage}/{Math.ceil(data.result.total / pageSize)}
                 </div>
                 <div
                     class="dropdown-content bg-base-100 rounded-box p-4 shadow-sm"
@@ -126,7 +109,7 @@
                     </form>
                 </div>
             </div>
-            {#if Number(currentPage) * Number(PUBLIC_PAGE_SIZE) > data.result.total || currentPage === "1"}
+            {#if Number(currentPage) * pageSize > data.result.total}
                 <button class="join-item btn btn-lg btn-disabled">»</button>
             {:else}
                 <button

@@ -3,18 +3,16 @@
     let { data } = $props();
 </script>
 
-<div class="min-h-screen bg-base-200 py-6 px-4 sm:py-12">
-    <article
-        class="mx-auto max-w-3xl bg-base-100 shadow-xl rounded-2xl p-6 sm:p-12"
-    >
+<div class="min-h-screen py-6 px-2 sm:py-12">
+    <article class="mx-auto max-w-3xl p-6 sm:p-12">
         <header class="mb-10 text-center">
             <h1
                 class="text-3xl sm:text-4xl font-bold text-base-content mb-4 leading-tight"
             >
                 {data.title}
             </h1>
-            <div class="badge badge-neutral">
-                章节: {data.chapter_index} / {data.total_chapters}
+            <div class="badge">
+                章节: {data.chapter_index + 1} / {data.total_chapters}
             </div>
         </header>
 
@@ -44,7 +42,7 @@
             {/if}
 
             <a
-                href="/${page.params.novelId}"
+                href="/{page.params.novelId}"
                 class="btn btn-ghost btn-sm text-base-content/60 hidden sm:inline-flex"
             >
                 返回目录

@@ -1,6 +1,13 @@
 import Database from "better-sqlite3";
 
-const db = new Database("./data.db");
+const db = new Database("./data.db", {
+  readonly: true,
+  fileMustExist: true,
+});
+db.pragma("journal_mode = OFF");
+db.pragma("query_only = true");
+db.pragma("cache_size = -1024000");
+db.pragma("temp_store = MEMORY");
 
 export interface SearchResult {
   author: string;
@@ -30,7 +37,7 @@ export interface ChapterResult {
   next_id: number;
 }
 
-const getNovelStmt = db.prepare<[number]>(`
+const getNovelStmt = db.prepare(`
   SELECT
     n.author,
     n.id AS novel_id,
@@ -43,7 +50,7 @@ const getNovelStmt = db.prepare<[number]>(`
   GROUP BY n.id
 `);
 
-const getChapterListStmt = db.prepare<[number]>(`
+const getChapterListStmt = db.prepare(`
   SELECT id, chapter_index, title, LENGTH(content) AS word_count
   FROM chapters
   WHERE novel_id = :id
@@ -68,10 +75,10 @@ const getChapterStmt = db.prepare(`
 `);
 
 export function getNovel(id: number): NovelResult | null {
-  const novel = getNovelStmt.get(id) as SearchResult | undefined;
+  const novel = getNovelStmt.get({ id }) as SearchResult | undefined;
   if (!novel) return null;
 
-  const chapters = getChapterListStmt.all(id) as ChapterInfo[];
+  const chapters = getChapterListStmt.all({ id }) as ChapterInfo[];
 
   return { ...novel, chapter_info: chapters };
 }

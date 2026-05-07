@@ -65,8 +65,8 @@ fn build_novel_schema() -> (Schema, NovelFields) {
   let mut builder = Schema::builder();
 
   let fields = NovelFields {
-    author: builder.add_text_field("author", build_text_options()),
     id: builder.add_u64_field("id", INDEXED | STORED),
+    author: builder.add_text_field("author", build_text_options()),
     title: builder.add_text_field("title", build_text_options()),
   };
 

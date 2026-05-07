@@ -40,26 +40,28 @@
 
 <div class="flex items-center justify-center flex-col">
     <Logo />
-
     <form
-        class="join"
+        class="join w-full md:w-auto px-4 md:px-0"
         onsubmit={(e) => {
             e.preventDefault();
             handleSearch();
         }}
     >
         <input
-            class="input join-item rounded-l-lg w-100"
+            class="input join-item rounded-l-lg w-full md:w-100"
             placeholder="请输入..."
             bind:value={keyword}
         />
-
-        <select class="select join-item w-20" bind:value={selected}>
+        <select class="select join-item w-24" bind:value={selected}>
             {#each options as option}
                 <option value={option.value}>{option.label}</option>
             {/each}
         </select>
-
-        <button type="submit" class="btn join-item rounded-r-lg"> 搜索 </button>
+        <button
+            type="submit"
+            class="btn join-item rounded-r-lg text-sm md:text-base"
+        >
+            搜索
+        </button>
     </form>
 </div>
