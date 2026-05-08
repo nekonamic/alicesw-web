@@ -1,9 +1,11 @@
 <script lang="ts">
-  let { data } = $props();
+import { favorites } from "$lib/utils/favorites.svelte";
+import { page } from "$app/state";
+let { data } = $props();
 
-  const formatWordCount = (count: number) => {
-    return count > 10000 ? (count / 10000).toFixed(1) + "万" : count;
-  };
+const formatWordCount = (count: number) => {
+	return count > 10000 ? (count / 10000).toFixed(1) + "万" : count;
+};
 </script>
 
 <div class="max-w-4xl mx-auto p-4 md:p-8 space-y-8">
@@ -14,9 +16,12 @@
           <h1 class="card-title text-3xl font-bold">
             {data.novel_title}
           </h1>
-          <p class="text-primary font-medium mt-1">
-            作者：{data.author}
-          </p>
+          <a
+            class="text-primary text-lg mt-1 underline"
+            href="/author?kw={data.author}&page=1"
+          >
+            {data.author}
+          </a>
         </div>
       </div>
 
@@ -66,7 +71,7 @@
         </div>
       </div>
 
-      <div class="card-actions justify-end mt-6 space-x-2">
+      <div class="flex justify-end mt-6 space-x-2">
         <details class="dropdown dropdown-center">
           <summary class="btn btn-secondary">下载</summary>
           <ul
@@ -76,6 +81,53 @@
             <li><a href="/api/txt/novel/{data.novel_id}">TXT</a></li>
           </ul>
         </details>
+        {#if favorites.includes(Number(page.params.novelId))}
+          <button
+            class="btn"
+            onclick={() => {
+              favorites.remove(Number(page.params.novelId));
+            }}
+          >
+            取消收藏
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-6"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m3 3 1.664 1.664M21 21l-1.5-1.5m-5.485-1.242L12 17.25 4.5 21V8.742m.164-4.078a2.15 2.15 0 0 1 1.743-1.342 48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185V19.5M4.664 4.664 19.5 19.5"
+              />
+            </svg>
+          </button>
+        {:else}
+          <button
+            class="btn"
+            onclick={() => {
+              favorites.addById(data.novel_title, Number(page.params.novelId));
+            }}
+          >
+            添加收藏
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-6"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
+              />
+            </svg>
+          </button>
+        {/if}
         <a
           class="btn btn-primary px-8"
           href="/{data.novel_id}/{data.chapter_info.find(
