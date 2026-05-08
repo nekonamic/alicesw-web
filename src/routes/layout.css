@@ -1,6 +1,7 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 @plugin "daisyui" {
-    themes:
-        silk --default,
-        luxury --prefersdark;
+  themes:
+    silk --default,
+    luxury --prefersdark;
 }

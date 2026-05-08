@@ -4,6 +4,5 @@ import { getRandomNovel } from "$lib/server/db";
 export const load: PageServerLoad = async () => {
   const result = getRandomNovel();
 
-  console.log(result);
   return { result };
 };

@@ -45,6 +45,20 @@ export interface RandomResult {
   title: number;
 }
 
+export interface DownloadResult extends DownloadNovel {
+  chapters: DownloadChapter[];
+}
+
+export interface DownloadNovel {
+  title: string;
+  author: string;
+}
+
+export interface DownloadChapter {
+  title: string;
+  data: string;
+}
+
 const getNovelStmt = db.prepare(`
   SELECT
     n.author,
@@ -88,6 +102,23 @@ const getRandomNovelStmt = db.prepare(
   `,
 );
 
+const getDownloadNovelStmt = db.prepare(
+  `
+  SELECT title, author
+  FROM novels
+  WHERE id = :id;
+  `,
+);
+
+const getDownloadChaptersStmt = db.prepare(
+  `
+  SELECT title, content as data
+  FROM chapters
+  WHERE novel_id = :id
+  ORDER BY chapter_index;
+  `,
+);
+
 export function getNovel(id: number): NovelResult | null {
   const novel = getNovelStmt.get({ id }) as SearchResult | undefined;
   if (!novel) return null;
@@ -107,4 +138,13 @@ export function getRandomNovel(): RandomResult[] | null {
   return (
     (getRandomNovelStmt.all({ pageSize }) as RandomResult[] | undefined) ?? null
   );
+}
+
+export function getDownloadNovel(id: number): DownloadResult | null {
+  const novel = getDownloadNovelStmt.get({ id }) as DownloadNovel | undefined;
+  if (!novel) return null;
+
+  const chapters = getDownloadChaptersStmt.all({ id }) as DownloadChapter[];
+
+  return { ...novel, chapters: chapters };
 }

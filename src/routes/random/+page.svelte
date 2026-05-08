@@ -1,12 +1,9 @@
 <script lang="ts">
-  import { page } from "$app/state";
-  import { goto } from "$app/navigation";
-
   let { data } = $props();
 </script>
 
 <div class="container mx-auto p-6">
-  <h1 class="text-3xl font-bold mb-8">试试手气</h1>
+  <h1 class="text-3xl font-bold mb-8">随机小说</h1>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {#each data.result as item (item.id)}

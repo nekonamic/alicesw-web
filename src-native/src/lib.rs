@@ -1,5 +1,8 @@
 #![deny(clippy::all)]
 
+pub mod epub;
+pub mod txt;
+
 use napi_derive::napi;
 use once_cell::sync::Lazy;
 use std::path::Path;

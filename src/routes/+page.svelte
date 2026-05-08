@@ -66,7 +66,7 @@
   </form>
 
   <div class="mt-2 space-x-1">
-    <a href="/info" class="btn">使用须知</a>
-    <a href="/random" class="btn">试试手气</a>
+    <a href="/info" class="btn">使用说明</a>
+    <a href="/random" class="btn">随机小说</a>
   </div>
 </div>
