@@ -40,12 +40,26 @@ async function handleSearch() {
 
 <div class="flex items-center flex-col">
   <Logo />
-  <form class="join w-full md:w-auto px-4 md:px-0">
+  <form
+    class="join w-full md:w-auto px-4 md:px-0"
+    onsubmit={(e) => {
+      e.preventDefault();
+      handleSearch();
+    }}
+  >
     <input
       class="input join-item rounded-l-lg w-full md:w-100"
       placeholder="请输入..."
+      type="search"
+      enterkeyhint="search"
       bind:value={keyword}
       onkeydown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          handleSearch();
+        }
+      }}
+      onkeyup={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
           handleSearch();
