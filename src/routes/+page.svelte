@@ -1,44 +1,44 @@
 <script lang="ts">
-import "./layout.css";
-import Logo from "$lib/components/Logo.svelte";
-import { goto } from "$app/navigation";
+  import "./layout.css";
+  import Logo from "$lib/components/Logo.svelte";
+  import { goto } from "$app/navigation";
 
-type SearchTarget = "content" | "title" | "author";
+  type SearchTarget = "content" | "title" | "author";
 
-const options: { value: SearchTarget; label: string }[] = [
-	{ value: "content", label: "内容" },
-	{ value: "title", label: "书名" },
-	{ value: "author", label: "作者" },
-];
+  const options: { value: SearchTarget; label: string }[] = [
+    { value: "content", label: "内容" },
+    { value: "title", label: "书名" },
+    { value: "author", label: "作者" },
+  ];
 
-let selected = $state<SearchTarget>("content");
-let keyword = $state("");
+  let selected = $state<SearchTarget>("content");
+  let keyword = $state("");
 
-async function handleSearch() {
-	if (!keyword.trim()) {
-		return;
-	}
+  async function handleSearch() {
+    if (!keyword.trim()) {
+      return;
+    }
 
-	const params = new URLSearchParams({
-		kw: keyword,
-		page: "1",
-	});
+    const params = new URLSearchParams({
+      kw: keyword,
+      page: "1",
+    });
 
-	switch (selected) {
-		case "content":
-			await goto(`/content?${params.toString()}`);
-			break;
-		case "title":
-			await goto(`/title?${params.toString()}`);
-			break;
-		case "author":
-			await goto(`/author?${params.toString()}`);
-			break;
-	}
-}
+    switch (selected) {
+      case "content":
+        await goto(`/content?${params.toString()}`);
+        break;
+      case "title":
+        await goto(`/title?${params.toString()}`);
+        break;
+      case "author":
+        await goto(`/author?${params.toString()}`);
+        break;
+    }
+  }
 </script>
 
-<div class="flex items-center justify-center flex-col">
+<div class="flex items-center flex-col">
   <Logo />
   <form class="join w-full md:w-auto px-4 md:px-0">
     <input
@@ -64,4 +64,9 @@ async function handleSearch() {
       搜索
     </button>
   </form>
+
+  <div class="mt-2 space-x-1">
+    <a href="/info" class="btn">使用须知</a>
+    <a href="/random" class="btn">试试手气</a>
+  </div>
 </div>
