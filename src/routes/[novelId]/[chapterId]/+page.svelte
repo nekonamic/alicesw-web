@@ -17,7 +17,7 @@
         </header>
 
         <section
-            class="text-lg sm:text-xl text-base-content/90 leading-loose tracking-wide whitespace-pre-wrap mb-12"
+            class="text-lg sm:text-xl text-black dark:text-white leading-loose tracking-wide whitespace-pre-wrap mb-12"
         >
             {data.content}
         </section>
