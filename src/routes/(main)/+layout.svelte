@@ -28,7 +28,7 @@
   class="navbar bg-base-200 fixed w-full transition-transform duration-300 transform-gpu z-50"
   id="navbar"
 >
-  <div class="flex-1 flex flex-row items-center gap-2">
+  <div class="flex-1 flex flex-row items-center sm:gap-2">
     <div class="hover-3d ml-2">
       <!-- content -->
       <figure class="max-w-100 rounded-2xl">

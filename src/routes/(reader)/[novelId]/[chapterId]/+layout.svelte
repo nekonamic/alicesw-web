@@ -28,7 +28,7 @@
   class="navbar bg-base-200 fixed w-full transition-transform duration-300 transform-gpu z-50"
   id="navbar"
 >
-  <div class="flex-1 flex flex-row items-center gap-2">
+  <div class="flex-1 flex flex-row items-center sm:gap-2">
     <div class="hover-3d ml-2">
       <!-- content -->
       <figure class="max-w-100 rounded-2xl">
@@ -78,10 +78,10 @@
           <!-- Sidebar content here -->
 
           <ul class="list bg-base-100 rounded-box shadow-md p-4">
-            <p class="pb-2 text-xl font-bold tracking-wide">
+            <p class="pb-2 text-xl font-bold tracking-wide pl-2">
               {data.result.title}
             </p>
-            <div class="flex flex-col gap-2 text-lg">
+            <div class="flex flex-col gap-1">
               {#each data.result.chapterInfo as chapterInfo}
                 <a
                   class="bg-base-100 rounded-lg hover:border-primary hover:bg-primary/5 transition-all p-2"
