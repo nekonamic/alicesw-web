@@ -1,12 +1,12 @@
 <script lang="ts">
-import { page } from "$app/state";
-let { data } = $props();
+  import { page } from "$app/state";
+  let { data } = $props();
 </script>
 
 <div class="py-6 px-2 sm:py-12">
   <article class="mx-auto max-w-3xl p-6 sm:p-12">
     <header class="mb-10 text-center">
-      <h1 class="font-bold text-base-content mb-4 leading-tight">
+      <h1 class="font-bold text-3xl text-base-content mb-4 leading-tight">
         {data.title}
       </h1>
       <div class="badge">

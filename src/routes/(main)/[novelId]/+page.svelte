@@ -131,7 +131,7 @@
         <a
           class="btn btn-primary"
           href="/{data.novel_id}/{data.chapter_info.find(
-            (ch) => ch.chapter_index === 0,
+            (ch: any) => ch.chapter_index === 0,
           )?.id}">开始阅读</a
         >
       </div>
