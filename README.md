@@ -1,10 +1,16 @@
-# 魔理沙书屋 - 可以在家里NAS运行可以搜索文章内容的爱丽丝书屋
+# 魔理沙书屋 - 可以在家里NAS运行支持搜索文章内容的爱丽丝书屋
 
 所谓NAS其实就是一台linux电脑，本地运行需要稍许软件开发知识，如果觉得麻烦可以直接使用预览网站: https://marisa.inf.li/
 
+## 开发环境
+
+`rust`, `node`, `pnpm`
+
+开发的时候都用的最新stable
+
 ## 使用教程
 
-数据下载地址: https://r2.inf.li/alicesw-20260428.7z
+数据下载地址: https://marisa.inf.li/
 
 数据也许隔三岔五会更新，当前数据截止2026/04/28
 
@@ -50,8 +56,6 @@ alicesw-web/
 
 ### 构建
 
-> node版本使用24，包管理使用pnpm
-
 ```sh
 # 需要先编译rust
 cd ./src-native
@@ -70,4 +74,17 @@ pnpm build
 node build
 ```
 
-默认3000端口
+### 更新
+
+```sh
+# 在alicesw-web文件夹内
+git pull
+# 编译rust
+cd ./src-native
+pnpm build
+cd ..
+# 构建SvelteKit
+pnpm build
+# 运行
+node build
+```
