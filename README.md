@@ -14,28 +14,6 @@
 
 数据也许隔三岔五会更新，当前数据截止2026/04/28
 
-先把下载的文件重命名成data.db
-
-### 索引数据
-
-```sh
-# 这是索引数据的仓库
-git clone https://git.inf.li/nekonamic/alicesw_fts
-cd alicesw_fts
-cargo run --release
-```
-
-然后会得到如下数据
-
-```
-alicesw_fts/
-├─ content_index/
-├─ novel_index/
-├─ data.db
-```
-
-性能弱的电脑可能需要十几分钟
-
 ### 克隆web代码
 
 ```sh
@@ -43,7 +21,7 @@ git clone https://git.inf.li/nekonamic/alicesw-web.git
 cd alicesw-web
 ```
 
-### 将刚刚得到的数据库与索引放在现在的目录下
+### 把下载得到的数据库与索引放在现在的目录下
 
 结构如下
 ```
