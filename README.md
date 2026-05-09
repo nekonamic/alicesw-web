@@ -58,10 +58,9 @@ alicesw-web/
 
 ```sh
 # 需要先编译rust
-cd ./src-native
-pnpm i
+cd ./packages/fts-native
 pnpm build
-cd ..
+cd ../..
 
 # 再构建SvelteKit
 pnpm i
@@ -80,10 +79,11 @@ node build
 # 在alicesw-web文件夹内
 git pull
 # 编译rust
-cd ./src-native
+cd ./packages/fts-native
 pnpm build
-cd ..
+cd ../..
 # 构建SvelteKit
+pnpm i
 pnpm build
 # 运行
 node build
