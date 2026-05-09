@@ -3,6 +3,8 @@
 pub mod epub;
 pub mod txt;
 
+use napi::bindgen_prelude::{AsyncTask, Result};
+use napi::{Env, Task};
 use napi_derive::napi;
 use once_cell::sync::Lazy;
 use std::path::Path;
@@ -35,6 +37,22 @@ struct NovelFields {
   author: Field,
   id: Field,
   title: Field,
+}
+
+pub struct SearchContentTask {
+  keyword: String,
+  page: u32,
+}
+
+pub struct SearchNovelTask {
+  keyword: String,
+  page: u32,
+  search_type: NovelSearchType,
+}
+
+pub enum NovelSearchType {
+  Title,
+  Author,
 }
 
 fn build_text_options() -> TextOptions {
@@ -117,6 +135,12 @@ static NOVEL: Lazy<(Index, NovelFields)> = Lazy::new(|| {
 
 static NOVEL_READER: Lazy<IndexReader> = Lazy::new(|| NOVEL.0.reader().unwrap());
 
+static NOVEL_TITLE_QUERY: Lazy<QueryParser> =
+  Lazy::new(|| QueryParser::for_index(&NOVEL.0, vec![NOVEL.1.title]));
+
+static NOVEL_AUTHOR_QUERY: Lazy<QueryParser> =
+  Lazy::new(|| QueryParser::for_index(&NOVEL.0, vec![NOVEL.1.author]));
+
 #[napi(object)]
 pub struct ContentSearchResult {
   pub author: String,
@@ -163,111 +187,155 @@ fn calc_offset(page: u32) -> usize {
 }
 
 #[napi]
-pub fn search_content(keyword: String, page: u32) -> ContentSearchResponse {
-  let searcher = CONTENT_READER.searcher();
-  let query = match CONTENT_QUERY.parse_query(&keyword) {
-    Ok(q) => q,
-    Err(_) => {
-      return ContentSearchResponse {
-        results: vec![],
-        total: 0,
+impl Task for SearchContentTask {
+  type Output = ContentSearchResponse;
+  type JsValue = ContentSearchResponse;
+
+  fn compute(&mut self) -> Result<Self::Output> {
+    let searcher = CONTENT_READER.searcher();
+
+    let query = match CONTENT_QUERY.parse_query(&self.keyword) {
+      Ok(q) => q,
+      Err(_) => {
+        return Ok(ContentSearchResponse {
+          results: vec![],
+          total: 0,
+        });
+      }
+    };
+
+    let search_result = searcher.search(
+      &query,
+      &(
+        TopDocs::with_limit(PAGE_SIZE)
+          .and_offset(calc_offset(self.page))
+          .order_by_score(),
+        Count,
+      ),
+    );
+
+    let (top_docs, total) = match search_result {
+      Ok(res) => res,
+      Err(_) => {
+        return Ok(ContentSearchResponse {
+          results: vec![],
+          total: 0,
+        })
+      }
+    };
+
+    let mut results = Vec::with_capacity(top_docs.len());
+    for (_, addr) in top_docs {
+      if let Ok(doc) = searcher.doc(addr) {
+        results.push(ContentSearchResult {
+          author: get_str(&doc, CONTENT.1.author),
+          novel_id: get_u32(&doc, CONTENT.1.novel_id),
+          novel_title: get_str(&doc, CONTENT.1.novel_title),
+          chapter_id: get_str(&doc, CONTENT.1.chapter_id),
+          chapter_title: get_str(&doc, CONTENT.1.chapter_title),
+          chapter_index: get_u32(&doc, CONTENT.1.chapter_index),
+        });
       }
     }
-  };
 
-  let top_docs = match searcher.search(
-    &query,
-    &TopDocs::with_limit(PAGE_SIZE)
-      .and_offset(calc_offset(page))
-      .order_by_score(),
-  ) {
-    Ok(docs) => docs,
-    Err(_) => {
-      return ContentSearchResponse {
-        results: vec![],
-        total: 0,
-      }
-    }
-  };
-
-  let total = match searcher.search(&query, &Count) {
-    Ok(count) => count as u32,
-    Err(_) => 0,
-  };
-
-  let mut results = Vec::with_capacity(top_docs.len());
-  for (_, addr) in top_docs {
-    if let Ok(doc) = searcher.doc(addr) {
-      results.push(ContentSearchResult {
-        author: get_str(&doc, CONTENT.1.author),
-        novel_id: get_u32(&doc, CONTENT.1.novel_id),
-        novel_title: get_str(&doc, CONTENT.1.novel_title),
-        chapter_id: get_str(&doc, CONTENT.1.chapter_id),
-        chapter_title: get_str(&doc, CONTENT.1.chapter_title),
-        chapter_index: get_u32(&doc, CONTENT.1.chapter_index),
-      });
-    }
+    Ok(ContentSearchResponse {
+      results,
+      total: total as u32,
+    })
   }
 
-  ContentSearchResponse { results, total }
-}
-
-fn search_novel(field: Field, keyword: String, page: u32) -> NovelSearchResponse {
-  let searcher = NOVEL_READER.searcher();
-
-  let parser = QueryParser::for_index(&NOVEL.0, vec![field]);
-
-  let query = match parser.parse_query(&keyword) {
-    Ok(q) => q,
-    Err(_) => {
-      return NovelSearchResponse {
-        results: vec![],
-        total: 0,
-      }
-    }
-  };
-
-  let top_docs = match searcher.search(
-    &query,
-    &TopDocs::with_limit(PAGE_SIZE)
-      .and_offset(calc_offset(page))
-      .order_by_score(),
-  ) {
-    Ok(docs) => docs,
-    Err(_) => {
-      return NovelSearchResponse {
-        results: vec![],
-        total: 0,
-      }
-    }
-  };
-
-  let total = match searcher.search(&query, &Count) {
-    Ok(count) => count as u32,
-    Err(_) => 0,
-  };
-
-  let mut results = Vec::with_capacity(top_docs.len());
-
-  for (_, addr) in top_docs {
-    if let Ok(doc) = searcher.doc(addr) {
-      results.push(NovelSearchResult {
-        author: get_str(&doc, NOVEL.1.author),
-        novel_id: get_u32(&doc, NOVEL.1.id),
-        novel_title: get_str(&doc, NOVEL.1.title),
-      });
-    }
+  fn resolve(&mut self, _env: Env, output: Self::Output) -> Result<Self::JsValue> {
+    Ok(output)
   }
-
-  NovelSearchResponse { results, total }
 }
 
 #[napi]
-pub fn search_title(keyword: String, page: u32) -> NovelSearchResponse {
-  search_novel(NOVEL.1.title, keyword, page)
+pub fn search_content(keyword: String, page: u32) -> AsyncTask<SearchContentTask> {
+  AsyncTask::new(SearchContentTask { keyword, page })
 }
 
 #[napi]
-pub fn search_author(keyword: String, page: u32) -> NovelSearchResponse {
-  search_novel(NOVEL.1.author, keyword, page)
+impl Task for SearchNovelTask {
+  type Output = NovelSearchResponse;
+  type JsValue = NovelSearchResponse;
+
+  fn compute(&mut self) -> Result<Self::Output> {
+    let searcher = NOVEL_READER.searcher();
+
+    // 根据枚举类型，选择对应的全局 QueryParser
+    let query_parser = match self.search_type {
+      NovelSearchType::Title => &*NOVEL_TITLE_QUERY,
+      NovelSearchType::Author => &*NOVEL_AUTHOR_QUERY,
+    };
+
+    let query = match query_parser.parse_query(&self.keyword) {
+      Ok(q) => q,
+      Err(_) => {
+        return Ok(NovelSearchResponse {
+          results: vec![],
+          total: 0,
+        });
+      }
+    };
+
+    // 【优化点】使用 Tuple Collector 合并 TopDocs 和 Count，单次遍历索引
+    let search_result = searcher.search(
+      &query,
+      &(
+        TopDocs::with_limit(PAGE_SIZE)
+          .and_offset(calc_offset(self.page))
+          .order_by_score(),
+        Count,
+      ),
+    );
+
+    let (top_docs, total) = match search_result {
+      Ok(res) => res,
+      Err(_) => {
+        return Ok(NovelSearchResponse {
+          results: vec![],
+          total: 0,
+        })
+      }
+    };
+
+    let mut results = Vec::with_capacity(top_docs.len());
+
+    for (_, addr) in top_docs {
+      if let Ok(doc) = searcher.doc(addr) {
+        results.push(NovelSearchResult {
+          author: get_str(&doc, NOVEL.1.author),
+          novel_id: get_u32(&doc, NOVEL.1.id),
+          novel_title: get_str(&doc, NOVEL.1.title),
+        });
+      }
+    }
+
+    Ok(NovelSearchResponse {
+      results,
+      total: total as u32,
+    })
+  }
+
+  fn resolve(&mut self, _env: Env, output: Self::Output) -> Result<Self::JsValue> {
+    Ok(output)
+  }
+}
+
+#[napi]
+pub fn search_title(keyword: String, page: u32) -> AsyncTask<SearchNovelTask> {
+  AsyncTask::new(SearchNovelTask {
+    keyword,
+    page,
+    search_type: NovelSearchType::Title,
+  })
+}
+
+#[napi]
+pub fn search_author(keyword: String, page: u32) -> AsyncTask<SearchNovelTask> {
+  AsyncTask::new(SearchNovelTask {
+    keyword,
+    page,
+    search_type: NovelSearchType::Author,
+  })
 }

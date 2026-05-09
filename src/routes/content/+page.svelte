@@ -1,26 +1,26 @@
 <script lang="ts">
-import { page } from "$app/state";
-import { goto } from "$app/navigation";
-import { PUBLIC_PAGE_SIZE } from "$env/static/public";
-const pageSize = Number(PUBLIC_PAGE_SIZE);
+  import { page } from "$app/state";
+  import { goto } from "$app/navigation";
+  import { PUBLIC_PAGE_SIZE } from "$env/static/public";
+  const pageSize = Number(PUBLIC_PAGE_SIZE);
 
-let { data } = $props();
-const kw = $derived(page.url.searchParams.get("kw"));
-const currentPage = $derived(page.url.searchParams.get("page"));
+  let { data } = $props();
+  const kw = $derived(page.url.searchParams.get("kw"));
+  const currentPage = $derived(page.url.searchParams.get("page"));
 
-let jumpPage = $state<number>(1);
+  let jumpPage = $state<number>(1);
 
-$effect(() => {
-	if (currentPage) {
-		jumpPage = Number(currentPage);
-	}
-});
+  $effect(() => {
+    if (currentPage) {
+      jumpPage = Number(currentPage);
+    }
+  });
 
-async function handlePage(newPage: number) {
-	const url = new URL(window.location.href);
-	url.searchParams.set("page", newPage.toString());
-	await goto(url.pathname + url.search);
-}
+  async function handlePage(newPage: number) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("page", newPage.toString());
+    await goto(url.pathname + url.search);
+  }
 </script>
 
 <div class="container mx-auto p-6">
@@ -95,7 +95,7 @@ async function handlePage(newPage: number) {
               <input
                 type="text"
                 class="w-24"
-                placeholder="1-{data.result.total}"
+                placeholder="1-{Math.ceil(data.result.total / pageSize)}"
                 bind:value={jumpPage}
               />
               <span class="label-text">页</span>

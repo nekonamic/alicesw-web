@@ -3,8 +3,8 @@ import { PAGE_SIZE } from "$env/static/private";
 const pageSize = Number(PAGE_SIZE);
 
 const db = new Database("./data.db", {
-	readonly: true,
-	fileMustExist: true,
+  readonly: true,
+  fileMustExist: true,
 });
 db.pragma("journal_mode = OFF");
 db.pragma("query_only = true");
@@ -12,51 +12,62 @@ db.pragma("cache_size = -1024000");
 db.pragma("temp_store = MEMORY");
 
 export interface SearchResult {
-	author: string;
-	novel_id: number;
-	novel_title: string;
-	chapter_count: number;
-	word_count: number;
+  author: string;
+  novel_id: number;
+  novel_title: string;
+  chapter_count: number;
+  word_count: number;
 }
 
-export interface ChapterInfo {
-	id: string;
-	chapter_index: number;
-	title: string;
-	word_count: number;
+export interface ChapterDetail {
+  id: string;
+  chapter_index: number;
+  title: string;
+  word_count: number;
 }
 
 export interface NovelResult extends SearchResult {
-	chapter_info: ChapterInfo[];
+  chapter_info: ChapterDetail[];
 }
 
 export interface ChapterResult {
-	title: string;
-	content: string;
-	chapter_index: number;
-	total_chapters: number;
-	prev_id: number;
-	next_id: number;
+  title: string;
+  content: string;
+  chapter_index: number;
+  total_chapters: number;
+  prev_id: number;
+  next_id: number;
 }
 
 export interface RandomResult {
-	author: string;
-	id: string;
-	title: number;
+  author: string;
+  id: string;
+  title: number;
 }
 
 export interface DownloadResult extends DownloadNovel {
-	chapters: DownloadChapter[];
+  chapters: DownloadChapter[];
 }
 
 export interface DownloadNovel {
-	title: string;
-	author: string;
+  title: string;
+  author: string;
 }
 
 export interface DownloadChapter {
-	title: string;
-	data: string;
+  title: string;
+  data: string;
+}
+
+export interface ChapterInfo {
+  title: string;
+  id: string;
+}
+
+export interface NovelInfo {
+  chapterInfo: ChapterInfo[];
+  title: string;
+  id: number;
 }
 
 const getNovelStmt = db.prepare(`
@@ -97,13 +108,13 @@ const getChapterStmt = db.prepare(`
 `);
 
 const getRandomNovelStmt = db.prepare(
-	`
+  `
   SELECT author, id, title FROM novels ORDER BY RANDOM() LIMIT :pageSize;
   `,
 );
 
 const getDownloadNovelStmt = db.prepare(
-	`
+  `
   SELECT title, author
   FROM novels
   WHERE id = :id;
@@ -111,7 +122,7 @@ const getDownloadNovelStmt = db.prepare(
 );
 
 const getDownloadChaptersStmt = db.prepare(
-	`
+  `
   SELECT title, content as data
   FROM chapters
   WHERE novel_id = :id
@@ -119,32 +130,58 @@ const getDownloadChaptersStmt = db.prepare(
   `,
 );
 
+const getChapterInfoListStmt = db.prepare(
+  `
+  SELECT title, id
+  FROM chapters
+  WHERE novel_id = :id
+  ORDER BY chapter_index;
+  `,
+);
+
+const getNovelInfoStmt = db.prepare(`
+  SELECT
+    id,
+    title
+  FROM novels
+  WHERE id = :id;
+`);
+
 export function getNovel(id: number): NovelResult | null {
-	const novel = getNovelStmt.get({ id }) as SearchResult | undefined;
-	if (!novel) return null;
+  const novel = getNovelStmt.get({ id }) as SearchResult | undefined;
+  if (!novel) return null;
 
-	const chapters = getChapterListStmt.all({ id }) as ChapterInfo[];
+  const chapters = getChapterListStmt.all({ id }) as ChapterDetail[];
 
-	return { ...novel, chapter_info: chapters };
+  return { ...novel, chapter_info: chapters };
 }
 
 export function getChapter(id: string, novelId: number): ChapterResult | null {
-	return (
-		(getChapterStmt.get({ id, novelId }) as ChapterResult | undefined) ?? null
-	);
+  return (
+    (getChapterStmt.get({ id, novelId }) as ChapterResult | undefined) ?? null
+  );
 }
 
 export function getRandomNovel(): RandomResult[] | null {
-	return (
-		(getRandomNovelStmt.all({ pageSize }) as RandomResult[] | undefined) ?? null
-	);
+  return (
+    (getRandomNovelStmt.all({ pageSize }) as RandomResult[] | undefined) ?? null
+  );
 }
 
 export function getDownloadNovel(id: number): DownloadResult | null {
-	const novel = getDownloadNovelStmt.get({ id }) as DownloadNovel | undefined;
-	if (!novel) return null;
+  const novel = getDownloadNovelStmt.get({ id }) as DownloadNovel | undefined;
+  if (!novel) return null;
 
-	const chapters = getDownloadChaptersStmt.all({ id }) as DownloadChapter[];
+  const chapters = getDownloadChaptersStmt.all({ id }) as DownloadChapter[];
 
-	return { ...novel, chapters: chapters };
+  return { ...novel, chapters: chapters };
+}
+
+export function getChapterInfoList(id: number): NovelInfo | null {
+  const novel = getNovelInfoStmt.get({ id }) as NovelInfo | undefined;
+  if (!novel) return null;
+
+  const chapters = getChapterInfoListStmt.all({ id }) as ChapterInfo[];
+
+  return { ...novel, chapterInfo: chapters };
 }

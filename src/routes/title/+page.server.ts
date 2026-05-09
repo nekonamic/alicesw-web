@@ -5,23 +5,23 @@ import { PAGE_SIZE } from "$env/static/private";
 const pageSize = Number(PAGE_SIZE);
 
 export const load: PageServerLoad = async ({ url }) => {
-	const kw = url.searchParams.get("kw")?.trim();
-	const pageStr = url.searchParams.get("page")?.trim();
+  const kw = url.searchParams.get("kw")?.trim();
+  const pageStr = url.searchParams.get("page")?.trim();
 
-	if (!kw || !pageStr) {
-		throw redirect(307, "/");
-	}
+  if (!kw || !pageStr) {
+    throw redirect(307, "/");
+  }
 
-	const page = parseInt(pageStr, 10);
-	if (Number.isNaN(page) || page < 1) {
-		throw redirect(307, "/");
-	}
+  const page = parseInt(pageStr, 10);
+  if (Number.isNaN(page) || page < 1) {
+    throw redirect(307, "/");
+  }
 
-	const result = searchTitle(kw, page);
+  const result = await searchTitle(kw, page);
 
-	if (page * pageSize - result.total > pageSize) {
-		throw redirect(307, "/");
-	}
+  if (page * pageSize - result.total > pageSize) {
+    throw redirect(307, "/");
+  }
 
-	return { result };
+  return { result };
 };

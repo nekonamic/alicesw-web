@@ -1,28 +1,27 @@
 <script lang="ts">
-import "./layout.css";
-import { onMount } from "svelte";
-import favicon from "$lib/assets/favicon.svg";
-import { favorites } from "$lib/utils/favorites.svelte";
-import { goto } from "$app/navigation";
+  import "./layout.css";
+  import { onMount } from "svelte";
+  import favicon from "$lib/assets/favicon.svg";
+  import { favorites } from "$lib/utils/favorites.svelte";
 
-let { children } = $props();
-let prevScrollPos = $state(0);
-let navbar: HTMLElement;
+  let { children } = $props();
+  let prevScrollPos = $state(0);
+  let navbar: HTMLElement;
 
-onMount(() => {
-	navbar = document.getElementById("navbar")!;
-	prevScrollPos = window.pageYOffset;
+  onMount(() => {
+    navbar = document.getElementById("navbar")!;
+    prevScrollPos = window.pageYOffset;
 
-	window.onscroll = function () {
-		let currentScrollPos = window.pageYOffset;
-		if (prevScrollPos > currentScrollPos) {
-			navbar.style.transform = "translateY(0)";
-		} else {
-			navbar.style.transform = "translateY(-100%)";
-		}
-		prevScrollPos = currentScrollPos;
-	};
-});
+    window.onscroll = function () {
+      let currentScrollPos = window.pageYOffset;
+      if (prevScrollPos > currentScrollPos) {
+        navbar.style.transform = "translateY(0)";
+      } else {
+        navbar.style.transform = "translateY(-100%)";
+      }
+      prevScrollPos = currentScrollPos;
+    };
+  });
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
@@ -46,9 +45,7 @@ onMount(() => {
       <div></div>
       <div></div>
     </div>
-    <div class="flex-1">
-      <a class="btn btn-ghost text-xl" href="/">魔理沙书屋</a>
-    </div>
+    <a class="btn btn-ghost text-xl" href="/">魔理沙书屋</a>
   </div>
   <div class="flex-none">
     <div class="drawer">

@@ -1,11 +1,11 @@
 <script lang="ts">
-import { favorites } from "$lib/utils/favorites.svelte";
-import { page } from "$app/state";
-let { data } = $props();
+  import { favorites } from "$lib/utils/favorites.svelte";
+  import { page } from "$app/state";
+  let { data } = $props();
 
-const formatWordCount = (count: number) => {
-	return count > 10000 ? (count / 10000).toFixed(1) + "万" : count;
-};
+  const formatWordCount = (count: number) => {
+    return count > 10000 ? (count / 10000).toFixed(1) + "万" : count;
+  };
 </script>
 
 <div class="max-w-4xl mx-auto p-4 md:p-8 space-y-8">
@@ -73,7 +73,7 @@ const formatWordCount = (count: number) => {
 
       <div class="flex justify-end mt-6 space-x-2">
         <details class="dropdown dropdown-center">
-          <summary class="btn btn-secondary">下载</summary>
+          <summary class="btn">下载</summary>
           <ul
             class="menu dropdown-content bg-base-200 rounded-box z-1 p-2 shadow-sm"
           >
@@ -83,7 +83,7 @@ const formatWordCount = (count: number) => {
         </details>
         {#if favorites.includes(Number(page.params.novelId))}
           <button
-            class="btn"
+            class="btn btn-soft"
             onclick={() => {
               favorites.remove(Number(page.params.novelId));
             }}
@@ -129,7 +129,7 @@ const formatWordCount = (count: number) => {
           </button>
         {/if}
         <a
-          class="btn btn-primary px-8"
+          class="btn btn-primary"
           href="/{data.novel_id}/{data.chapter_info.find(
             (ch) => ch.chapter_index === 0,
           )?.id}">开始阅读</a
