@@ -1,26 +1,26 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import favicon from "$lib/assets/favicon.svg";
-  import { favorites } from "$lib/utils/favorites.svelte";
+import { onMount } from "svelte";
+import favicon from "$lib/assets/favicon.svg";
+import { favorites } from "$lib/utils/favorites.svelte";
 
-  let { data, children } = $props();
-  let prevScrollPos = $state(0);
-  let navbar: HTMLElement;
+let { data, children } = $props();
+let prevScrollPos = $state(0);
+let navbar: HTMLElement;
 
-  onMount(() => {
-    navbar = document.getElementById("navbar")!;
-    prevScrollPos = window.pageYOffset;
+onMount(() => {
+	navbar = document.getElementById("navbar")!;
+	prevScrollPos = window.pageYOffset;
 
-    window.onscroll = function () {
-      let currentScrollPos = window.pageYOffset;
-      if (prevScrollPos > currentScrollPos) {
-        navbar.style.transform = "translateY(0)";
-      } else {
-        navbar.style.transform = "translateY(-100%)";
-      }
-      prevScrollPos = currentScrollPos;
-    };
-  });
+	window.onscroll = function () {
+		let currentScrollPos = window.pageYOffset;
+		if (prevScrollPos > currentScrollPos) {
+			navbar.style.transform = "translateY(0)";
+		} else {
+			navbar.style.transform = "translateY(-100%)";
+		}
+		prevScrollPos = currentScrollPos;
+	};
+});
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>

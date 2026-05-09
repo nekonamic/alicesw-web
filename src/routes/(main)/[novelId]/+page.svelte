@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { favorites } from "$lib/utils/favorites.svelte";
-  import { page } from "$app/state";
-  let { data } = $props();
+import { favorites } from "$lib/utils/favorites.svelte";
+import { page } from "$app/state";
+let { data } = $props();
 
-  const formatWordCount = (count: number) => {
-    return count > 10000 ? (count / 10000).toFixed(1) + "万" : count;
-  };
+const formatWordCount = (count: number) => {
+	return count > 10000 ? (count / 10000).toFixed(1) + "万" : count;
+};
 </script>
 
 <div class="max-w-4xl mx-auto p-4 md:p-8 space-y-8">

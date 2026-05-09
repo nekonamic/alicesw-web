@@ -29,6 +29,6 @@
 	},
 	"dependencies": {
 		"better-sqlite3": "^12.9.0",
-		"fts-native": "link:src-native"
+		"fts-native": "workspace:*"
 	}
 }

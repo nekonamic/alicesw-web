@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { page } from "$app/state";
-  let { data } = $props();
+import { page } from "$app/state";
+let { data } = $props();
 </script>
 
 <div class="py-6 px-2 sm:py-12">
