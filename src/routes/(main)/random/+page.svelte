@@ -1,5 +1,5 @@
 <script lang="ts">
-let { data } = $props();
+  let { data } = $props();
 </script>
 
 <div class="container mx-auto p-6">
@@ -32,6 +32,6 @@ let { data } = $props();
   </div>
 
   <div class="flex justify-center mt-4">
-    <a class="btn btn-lg" href="/random">再来一次</a>
+    <a class="btn btn-lg" href="/random" data-sveltekit-reload>再来一次</a>
   </div>
 </div>
