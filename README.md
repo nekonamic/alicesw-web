@@ -4,13 +4,21 @@
 
 ## Windows用户
 
-可以直接下载构建好的程序：https://r2.inf.li/alicesw-web.7z
+可以直接下载构建好的程序
 
-还要下载数据: https://r2.inf.li/alicesw-20260428.7z
+程序：https://r2.inf.li/alicesw-web.7z
+
+数据下载: https://r2.inf.li/alicesw-20260428.7z
+
+索引工具：https://r2.inf.li/alicesw_fts.exe
 
 数据也许隔三岔五会更新，当前数据截止2026/04/28
 
-解压好后把数据放在alicesw-web文件夹里，如下
+全部解压，把`.db`文件重命名为`data.db`，然后把`alicesw_fts.exe`和`data.db`放在一起，双击运行`alicesw_fts.exe`，等待三项索引完成
+
+完成后会得到`content_index/` `novel_index/`以及老的`data.db`
+
+将要这三个放在程序包里，如下：
 
 ```
 alicesw-web/
