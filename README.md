@@ -4,43 +4,32 @@
 
 网站只有IPv6，访问需要有IPv6地址，可以使用手机流量或者打开路由器的IPv6功能
 
-## Windows用户
-
-可以直接下载构建好的程序
-
-程序：https://r2.inf.li/alicesw-web.7z
-
 数据下载: https://r2.inf.li/alicesw-20260428.7z
-
-索引工具：https://r2.inf.li/alicesw_fts.exe
-
-数据也许隔三岔五会更新，当前数据截止2026/04/28
-
-全部解压，把`.db`文件重命名为`data.db`，然后把`alicesw_fts.exe`和`data.db`放在一起，双击运行`alicesw_fts.exe`，等待三项索引完成
-
-完成后会得到`content_index/` `novel_index/`以及老的`data.db`
-
-将要这三个放在程序包里，如下：
-
-```
-alicesw-web/
-├─ content_index/
-├─ novel_index/
-├─ data.db
-...其他东西
-```
-
-然后双击`start.bat`就能启动了
-
-然后打开浏览器，访问 `http://127.0.0.1:3000`
 
 ## 编译教程
 
-## 开发环境
+### 开发环境
 
 `rust`, `node`, `pnpm`
 
 开发的时候都用的最新stable
+
+### 克隆索引代码
+
+```sh
+git clone https://git.inf.li/nekonamic/alicesw_fts.git
+cd alicesw_fts
+```
+
+### 索引数据
+
+把下载得到的`.db`文件重命名为`data.db`，然后放在`alicesw_fts/`文件夹里，运行
+
+```sh
+cargo run --release
+```
+
+完成后会得到`content_index/` `novel_index/`以及老的`data.db`
 
 ### 克隆web代码
 
@@ -49,7 +38,7 @@ git clone https://git.inf.li/nekonamic/alicesw-web.git
 cd alicesw-web
 ```
 
-### 把下载得到的数据库与索引放在现在的目录下
+### 把刚刚得到的数据库与索引放在现在的目录下
 
 结构如下
 ```
