@@ -1,5 +1,12 @@
 <script lang="ts">
+  import { goto, invalidateAll } from '$app/navigation';
+
   let { data } = $props();
+  async function handleReload() {
+    window.scrollTo(0, 0);
+    await goto('/random');
+    await invalidateAll();
+  }
 </script>
 
 <div class="container mx-auto p-6">
@@ -21,7 +28,7 @@
 
           <div class="card-actions justify-end">
             <a
-              class="btn btn-sm btn-secondary"
+              class="btn btn-sm"
               href="/author?kw={item.author}&page=1">搜索作者</a
             >
             <a class="btn btn-sm btn-primary" href="/{item.id}">查看小说</a>
@@ -31,7 +38,7 @@
     {/each}
   </div>
 
-  <div class="flex justify-center mt-4">
-    <a class="btn btn-lg" href="/random" data-sveltekit-reload>再来一次</a>
+  <div class="flex justify-center mt-6">
+    <a class="btn w-full" href="/random" onclick={handleReload}>再来一次</a>
   </div>
 </div>

@@ -41,10 +41,6 @@ async function handlePage(newPage: number) {
           </p>
 
           <div class="card-actions justify-end">
-            <a
-              class="btn btn-sm btn-secondary"
-              href="/author?kw={item.author}&page=1">搜索作者</a
-            >
             <a class="btn btn-sm btn-primary" href="/{item.novelId}">查看小说</a
             >
           </div>
@@ -85,7 +81,7 @@ async function handlePage(newPage: number) {
               <span class="label-text">第</span>
               <input
                 type="text"
-                class="w-24"
+                class="w-12"
                 placeholder="1-{Math.ceil(data.result.total / pageSize)}"
                 bind:value={jumpPage}
               />

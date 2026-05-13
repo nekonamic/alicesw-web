@@ -78,15 +78,15 @@ onMount(() => {
           <!-- Sidebar content here -->
 
           <ul class="list bg-base-100 rounded-box shadow-md p-4">
-            <p class="pb-2 text-xl font-bold tracking-wide pl-2">
+            <a class="pb-2 text-xl font-bold tracking-wide pl-2" href="/{data.result.id}" aria-label="打开小说">
               {data.result.title}
-            </p>
+            </a>
             <div class="flex flex-col gap-1">
               {#each data.result.chapterInfo as chapterInfo}
                 <a
                   class="bg-base-100 rounded-lg hover:border-primary hover:bg-primary/5 transition-all p-2"
                   href="/{data.result.id}/{chapterInfo.id}"
-                  aria-label="阅读"
+                  aria-label="打开章节"
                 >
                   {chapterInfo.title}
                 </a>

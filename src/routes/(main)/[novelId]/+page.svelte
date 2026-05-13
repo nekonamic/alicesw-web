@@ -67,7 +67,7 @@ const formatWordCount = (count: number) => {
             </svg>
           </div>
           <div class="stat-title">章节数</div>
-          <div class="stat-value text-secondary">{data.chapter_count}</div>
+          <div class="stat-value text-primary">{data.chapter_count}</div>
         </div>
       </div>
 
