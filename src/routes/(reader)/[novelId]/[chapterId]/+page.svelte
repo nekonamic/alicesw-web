@@ -10,7 +10,7 @@ let { data } = $props();
         {data.title}
       </h1>
       <div class="badge">
-        章节: {data.chapter_index + 1} / {data.total_chapters}
+        {data.chapter_index + 1} / {data.total_chapters}
       </div>
     </header>
 

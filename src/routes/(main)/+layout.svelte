@@ -11,7 +11,7 @@ onMount(() => {
 	navbar = document.getElementById("navbar")!;
 	prevScrollPos = window.pageYOffset;
 
-	window.onscroll = function () {
+	window.onscroll = () => {
 		let currentScrollPos = window.pageYOffset;
 		if (prevScrollPos > currentScrollPos) {
 			navbar.style.transform = "translateY(0)";

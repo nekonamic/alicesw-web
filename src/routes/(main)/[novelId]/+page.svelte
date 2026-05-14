@@ -50,7 +50,7 @@ const formatWordCount = (count: number) => {
         </div>
 
         <div class="stat">
-          <div class="stat-figure text-secondary">
+          <div class="stat-figure text-primary">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"

@@ -2,6 +2,7 @@
 import { onMount } from "svelte";
 import favicon from "$lib/assets/favicon.svg";
 import { favorites } from "$lib/utils/favorites.svelte";
+  import { page } from "$app/state";
 
 let { data, children } = $props();
 let prevScrollPos = $state(0);
@@ -11,7 +12,7 @@ onMount(() => {
 	navbar = document.getElementById("navbar")!;
 	prevScrollPos = window.pageYOffset;
 
-	window.onscroll = function () {
+	window.onscroll = () => {
 		let currentScrollPos = window.pageYOffset;
 		if (prevScrollPos > currentScrollPos) {
 			navbar.style.transform = "translateY(0)";
@@ -83,8 +84,12 @@ onMount(() => {
             </a>
             <div class="flex flex-col gap-1">
               {#each data.result.chapterInfo as chapterInfo}
+              {@const isCurrent = chapterInfo.id === page.params.chapterId}
                 <a
-                  class="bg-base-100 rounded-lg hover:border-primary hover:bg-primary/5 transition-all p-2"
+                  class="bg-base-100 rounded-lg p-2
+                  {isCurrent 
+                    ? 'border-primary bg-primary/5 transition-all' 
+                    : 'hover:border-primary hover:bg-primary/5 transition-all'}"
                   href="/{data.result.id}/{chapterInfo.id}"
                   aria-label="打开章节"
                 >
@@ -98,10 +103,10 @@ onMount(() => {
       </div>
     </div>
     <div class="drawer">
-      <input id="my-drawer-1" type="checkbox" class="drawer-toggle" />
+      <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
       <div class="drawer-content">
         <!-- Page content here -->
-        <label for="my-drawer-1" class="btn btn-ghost drawer-button">
+        <label for="my-drawer-2" class="btn btn-ghost drawer-button">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -120,7 +125,7 @@ onMount(() => {
       </div>
       <div class="drawer-side">
         <label
-          for="my-drawer-1"
+          for="my-drawer-2"
           aria-label="close sidebar"
           class="drawer-overlay"
         ></label>
