@@ -79,7 +79,11 @@ onMount(() => {
           <!-- Sidebar content here -->
 
           <ul class="list bg-base-100 rounded-box shadow-md p-4">
-            <a class="pb-2 text-xl font-bold tracking-wide pl-2" href="/{data.result.id}" aria-label="打开小说">
+            <a class="pb-2 text-xl font-bold tracking-wide pl-2" href="/{data.result.id}" aria-label="打开小说" 
+            onclick={() => {
+              const drawer = document.getElementById('my-drawer-1') as HTMLInputElement;
+              drawer.checked = false;
+            }}>
               {data.result.title}
             </a>
             <div class="flex flex-col gap-1">
@@ -92,6 +96,10 @@ onMount(() => {
                     : 'hover:border-primary hover:bg-primary/5 transition-all'}"
                   href="/{data.result.id}/{chapterInfo.id}"
                   aria-label="打开章节"
+                  onclick={() => {
+                    const drawer = document.getElementById('my-drawer-1') as HTMLInputElement;
+                    drawer.checked = false;
+                  }}
                 >
                   {chapterInfo.title}
                 </a>
@@ -141,32 +149,14 @@ onMount(() => {
                   {favorite.title}
                 </div>
                 <div>
-                  <button
-                    class="btn btn-square btn-ghost"
-                    onclick={() => {
-                      favorites.remove(Number(favorite.id));
-                    }}
-                    aria-label="移除"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="size-6"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="m3 3 1.664 1.664M21 21l-1.5-1.5m-5.485-1.242L12 17.25 4.5 21V8.742m.164-4.078a2.15 2.15 0 0 1 1.743-1.342 48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185V19.5M4.664 4.664 19.5 19.5"
-                      />
-                    </svg>
-                  </button>
                   <a
                     class="btn btn-square btn-ghost"
                     href="/{favorite.id}"
                     aria-label="阅读"
+                    onclick={() => {
+                      const drawer = document.getElementById('my-drawer-2') as HTMLInputElement;
+                      drawer.checked = false;
+                    }}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
